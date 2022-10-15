@@ -9,6 +9,8 @@ const PendingTransactions = () => {
 
     const [sTransaction, setsTransaction] = useState([])
 
+    const [aTransaction, setaTransaction] = useState([])
+
     const [wallets, setWallets] = useState({
         wallets: []
     })
@@ -21,7 +23,7 @@ const PendingTransactions = () => {
     //     walletname: undefined//JSON.parse(localStorage.getItem('MyUser'))[0]._id
     // })
 
-    const walletname = JSON.parse(localStorage.getItem('MyUser'))._id
+    // const walletname = JSON.parse(localStorage.getItem('MyUser'))._id
 
     const [privilege, setPrivilige] = useState({
         status: 1
@@ -50,7 +52,6 @@ const PendingTransactions = () => {
         });
     }, [])
 
-    console.log(user.transactions_)
      
 
     // fetch('/privilige_status')
@@ -95,13 +96,15 @@ const PendingTransactions = () => {
         
             var arr
             var fetch = require('cross-fetch')
+            console.log(sTransaction)
             fetch('/validateTrans', {
                 method: 'POST',
                 body: JSON.stringify({
-                    'tList': user.transactions_
+                    'tList': sTransaction
                 }),
                 headers: { 'Content-Type': 'Application/json' }
-            }).then(resp => resp.json()).then(resp => setValid(resp.valid_or_not))
+            }).then(resp => resp.json()).then(resp => {setValid(resp.valid_or_not); console.log(resp.valid_or_not)})
+            
         
     }
 
@@ -111,18 +114,25 @@ const PendingTransactions = () => {
         )
     }
 
+    const acceptTransaction = (element) => {
+        setaTransaction(
+            aTransaction => [...aTransaction, element]
+        )
+    }
+
     const signBlock = () => {
         fetch('/get_signature', {
             method: 'POST',
             body: JSON.stringify({
-                publicKey: userDetails.publicKey,
-                selectedTrans : sTransaction,
+                privateKey: userDetails.private_key,
+                publicKey: userDetails.public_key,
+                selectedTrans : aTransaction
             }),
             headers: { 'Content-Type': 'application/json' }
         })
             .then(resp => resp.json())
             .then(resp => {
-                alert(resp.message)
+                alert(resp.Message)
             });
     }
 
@@ -141,9 +151,6 @@ const PendingTransactions = () => {
             
 
             <h3> Pending Transactions</h3>
-            <button className="btn btn-primary" onClick={validateTrans} >
-                Validate All The Pending Transactions
-            </button>
             <table className="table table-hover table-striped">
                 <tbody>
                     <tr>
@@ -155,7 +162,7 @@ const PendingTransactions = () => {
                         <th>Accept/Reject</th>
                     </tr>
                     {user.transactions_.filter(x => !sTransaction.includes(x)).map((element, index) => (
-                        <tr style={{ background: getColor(valid[index])}}>
+                        <tr >
                             <td>
                                 {index + 1}
                             </td>
@@ -173,8 +180,8 @@ const PendingTransactions = () => {
                             </td>
                             <td>
                                 {/* <button type="button" class="btn btn-outline-success me-3" onClick={selectTransaction(element)}>✓</button> */}
-                                <button type="button" class="btn btn-outline-success me-3" onClick={() => selectTransaction(element)}>✓</button>
-                                <button type="button" class="btn btn-outline-danger">✗</button>
+                                <button type="button" class="btn btn-outline-success me-3" onClick={() => selectTransaction(element)}>Select</button>
+                                {/* <button type="button" class="btn btn-outline-danger">✗</button> */}
                             </td>
                         </tr>
                     )
@@ -185,6 +192,10 @@ const PendingTransactions = () => {
             </table>
 
             <h3> Selected Transactions</h3>
+
+            <button className="btn btn-primary" onClick={validateTrans} >
+                Validate All The Selected Transactions
+            </button>
             <table className="table table-hover table-striped">
                 <tbody>
                     <tr>
@@ -195,7 +206,49 @@ const PendingTransactions = () => {
                         <th>Fee</th>
                         <th>Accepted</th>
                     </tr>
-                    {sTransaction.map((element, index) => (
+                    {sTransaction.filter(x => !aTransaction.includes(x)).map((element, index) => (
+                        <tr style={{ background: getColor(valid[index])}}>
+                            <td>
+                                {index + 1}
+                            </td>
+                            <td>
+                                {element.from.substring(0, 32)}...
+                            </td>
+                            <td>
+                                {element.to.substring(0, 32)}...
+                            </td>
+                            <td>
+                                {element.amount}
+                            </td>
+                            <td>
+                                {element.fee}
+                            </td>
+                            <td>
+                            <button type="button" class="btn btn-outline-success me-3" onClick={() => {acceptTransaction(element); var arr = valid; arr.splice(index, 1); setValid(arr)}}>✓</button>
+                                {/* <button type="button" class="btn btn-outline-success me-3" onClick={() => {acceptTransaction(element); setValid(valid.filter(x => !valid.splice(index, 1).includes(x)))}}>✓</button> */}
+                                <button type="button" class="btn btn-outline-danger">✗</button>
+                            </td>
+                        </tr>
+                    )
+                    )
+                    }
+
+                </tbody>
+            </table>
+
+            <h3> Accepted Transactions </h3>
+            <p> These Transactions will go into the Block.</p>
+            <table className="table table-hover table-striped">
+                <tbody>
+                    <tr>
+                        <th>#</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Amount</th>
+                        <th>Fee</th>
+                        <th>Accepted</th>
+                    </tr>
+                    {aTransaction.map((element, index) => (
                         <tr>
                             <td>
                                 {index + 1}
@@ -222,6 +275,8 @@ const PendingTransactions = () => {
 
                 </tbody>
             </table>
+
+
             {/* <div className="dropdown">
                 <p>Wallet Chosen: 
                     {

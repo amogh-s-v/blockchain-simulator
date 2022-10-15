@@ -44,19 +44,18 @@ const SidebarData = () => {
     fetch('/get_details', {
       method: 'POST',
       body: JSON.stringify({
-        uid: JSON.parse(localStorage.getItem("MyUser")).uid
+        public_key: JSON.parse(localStorage.getItem("MyUser")).public_key
       }),
       headers: { 'Content-Type': 'application/json' }
     })
       .then(resp => resp.json())
       .then(resp => {
-        transactions = resp.wallets;
-        setWallets({
-          wallets: transactions
-        })
-        // localStorage.setItem("MyUser", JSON.stringify(resp.wallets))
+            var x = JSON.parse(localStorage.getItem("MyUser"))
+            x.balance = resp.balance
+            x.stake = resp.stake
+            x.type = resp.type
+            localStorage.setItem("MyUser",JSON.stringify(x))
       });
-    //window.location.href = '/details';
   }
   function MouseOver(event) {
     getDetails();
@@ -109,6 +108,20 @@ const SidebarData = () => {
         className="btn btn-outline-light"
         onClick={(e) => {
           e.preventDefault();
+          fetch('/get_details', {
+            method: 'POST',
+            body: JSON.stringify({ public_key: localStorage.getItem("MyUser").public_key }),
+            headers: { 'Content-Type': 'Application/json' }
+        })
+        .then(resp => resp.json())
+        .then(resp => {
+            alert(resp.Message)
+            var x = JSON.parse(localStorage.getItem("MyUser"))
+            x.balance = resp.balance
+            x.stake = resp.stake
+            x.type = resp.type
+            localStorage.setItem("MyUser",JSON.stringify(x))
+        })
           window.location.href = "/mineblock"
         }}>
         Mine Block

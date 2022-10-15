@@ -29,7 +29,9 @@ const Register = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 'email': user.email, 'password': user.password })
                 
-            }).then(resp => resp.json()).then(resp => alert(resp.message))
+            })
+            .then(resp => resp.json())
+            // .then(resp => alert(resp.message))
 
         } else {
             alert("invalid input")

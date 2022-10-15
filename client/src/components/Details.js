@@ -78,9 +78,21 @@ const Details = () => {
     const addStake = () => {
         fetch('/addStake', {
             method: 'POST',
-            body: JSON.stringify({ _stakeValue: stake.stakeValue, walletID: string._id }),
+            body: JSON.stringify({ stake: stake.stakeValue, public_key: string.public_key }),
             headers: { 'Content-Type': 'Application/json' }
-        }).then(resp => resp.json()).then(resp => { alert(resp.message) })
+        })
+        .then(resp => resp.json())
+        .then(resp => {
+            alert(resp.Message)
+            var x = JSON.parse(localStorage.getItem("MyUser"))
+            x.balance = resp.balance
+            x.stake = resp.stake
+            x.type = resp.type
+            localStorage.setItem("MyUser",JSON.stringify(x))
+            setState({
+                balance: resp.balance
+            })
+        })
     }
 
     return (
@@ -99,7 +111,7 @@ const Details = () => {
             string.id == localStorage.getItem("UserName")?
             <>
             <input type="text" className="form-control" id="addStake" onChange={handleChange} name='stakeValue' value={stake.stakeValue} />
-            <button style = { {'margin' : '24px'}} type="button" className='btn btn-primary' onClick={getMore}>
+            <button style = { {'margin' : '24px'}} type="button" className='btn btn-primary' onClick={addStake}>
                 Add Stake
             </button>
             </>

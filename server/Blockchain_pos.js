@@ -135,21 +135,27 @@ class blockchain
         this.no_of_users -= 1
     }
     add_validator = (key,stake) => {
+        stake = Number(stake)
         if(this.no_of_validators < this.no_of_users*this.validator_threshold &&  stake >= this.stake_threshold && stake <= this.max_threshold)
         {
             if(this.nodes[key].balance - stake > 0)
             {
                 this.nodes[key].balance -= stake
-                this.nodes[key].stake += stake 
+                this.nodes[key].stake += stake
                 this.nodes[key].type = 2
                 this.validators[key] = this.nodes[key]
                 this.no_of_validators += 1
-                return 1
+                //to be discussed
+                if(this.no_of_validators == 1)
+                    this.nodes[key].type = 3
+                return this.nodes[key]
             }
-            return 0
+            return null
         }
-        return 0
+        return null
     }
+
+
     remove_validator = (key)=> {
         this.nodes[key].balance += this.nodes[key].stake
         this.nodes[key].stake = 0
@@ -176,13 +182,23 @@ class blockchain
     }
     validate = (transactions)=>{
         var result_array = new Array()
+        var balances = {}
+        transactions.forEach((tx)=>{
+            if(!(tx.from in balances))
+                balances[tx.from] = this.nodes[tx.from].balance
+        })
         transactions.forEach((tx)=>{
             if(Mempool.verify(tx.from,tx.signature, tx.id))
             {
-                if(( this.nodes[tx.from].balance - Number(tx.amount) - Number(tx.fee) ) > 0)
+                console.log("first if passed")
+                balances[tx.from] = balances[tx.from] - Number(tx.amount) - Number(tx.fee)
+                if(balances[tx.from] >= 0)
                 {   
-                    if(tx.to in this.nodes)
+                    console.log("2nd if")
+                    if(tx.to in this.nodes){
+                        console.log("3rd if")
                         result_array.push(1)
+                    }
                     else 
                         result_array.push(0)
                 }
@@ -218,23 +234,31 @@ class blockchain
 
     get_pending_blocks = (validator_key)=>{
         var pending = new Array()
+        console.log("outsid", validator_key)
         this.pending.forEach((block)=>{
+            console.log("indside for each", block.validator)
             if(!block.voted.has(validator_key))
             {
+                console.log("inside", pending)
                 pending.push(block)
             }
         })
+        
         return pending
     }
     add_block = (validator_key, validator, transactions)=>{
-        if(validator_key == this.get_forger()){
+        console.log(this.nodes[validator])
+        if(this.nodes[validator].type === 3){
             this.pending.push(new block(this.index,validator_key,validator,Date.now(),this.chain[this.index-1].hash,transactions))
-            this.nodes[validator_key].type = 2
+            this.nodes[validator].type = 2
+            this.get_forger()
+            this.update_chain();
             return 1
         }
         else
             return -1
     }
+
     remove_block = (hash)=>{
         this.pending.forEach((block,i)=>{
         if(block.hash == hash)
@@ -254,18 +278,18 @@ class blockchain
                     if(b.index == block.index)
                         this.pending.splice(i,1)
                 })
-                this.update_funds(block.transactions)
+                this.update_funds(block.transactions, block.validator)
                 this.index += 1
             }
         })
     }
-    update_funds = (transactions)=>{
+    update_funds = (transactions, validator)=>{
         console.log(typeof(transactions))
         if(transactions)
         transactions.forEach((tx)=>{
             this.nodes[tx.from].balance -= tx.amount+tx.fee
             this.nodes[tx.to].balance += tx.amount
-            this.nodes[tx.validator].balance += tx.fee
+            this.nodes[validator].balance += tx.fee
         })
     }
 
@@ -356,6 +380,8 @@ app.get('/get_validators',(req,res)=>{
 })
 
 app.post('/get_pending_blocks',(req,res)=>{
+    console.log("app-post-pending", req.body)
+    console.log("RETURN VALUE", Blockchain.get_pending_blocks(req.body.validator_key))
     res.send({'Blocks':Blockchain.get_pending_blocks(req.body.validator_key)})
 })
 
@@ -387,10 +413,13 @@ app.post('/validateTrans', (req, res) => {
     res.send({"valid_or_not" : Blockchain.validate(req.body.tList)})
 })
 
-app.post('/get_signature', (req, res) => { 
-    var trans = JSON.parse(req.body.selectedTrans)
-    Blockchain.add_block(req.body.publicKey, trans)
-    res.send("Success")
+app.post('/get_signature', (req, res) => {
+    console.log("1", req.body) 
+    var trans = req.body.selectedTrans
+    console.log("2", req.body)
+    Blockchain.add_block(req.body.privateKey, req.body.publicKey, trans)
+    
+    res.send({'Message': 'Signed and Created Block'})
 })
 
 app.post('/votes', (req, res) => {
@@ -398,5 +427,25 @@ app.post('/votes', (req, res) => {
     var validator_vote = req.body.vote
     Blockchain.vote(public_key, validator_vote, req.body.hash)
 })
+
+app.post('/addStake',(req,res)=>{
+    var validator_details = Blockchain.add_validator(req.body.public_key, req.body.stake)
+    if(validator_details!=null)
+        res.send({'Message':'Successful', 'balance':validator_details.balance, 'stake':validator_details.stake, 'type':validator_details.type})
+    else
+        res.send({'Message':'You cannot become a validator now!!'})
+})
+
+app.post('/get_details',(req,res)=>{
+    if(req.body.public_key in Blockchain.nodes)
+    {
+        var validator_details = Blockchain.nodes[req.body.public_key]
+        if(validator_details!=null)
+            res.send({'balance':validator_details.balance,'stake':validator_details.stake,'type':validator_details.type})
+        else
+            res.send({'Message':'Invalid!!'})
+    }
+})
+
 
 app.listen(PORT)

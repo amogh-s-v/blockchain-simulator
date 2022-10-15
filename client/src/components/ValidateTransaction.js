@@ -14,39 +14,24 @@ const ValidateTransaction = () => {
         transactions:[]
     })
 
-  // fetch('/get_chain')
-  //   .then(resp => resp.json())
-  //   .then(resp => {
-  //     setChain(resp.chain)
-  //   })
-
     useEffect(() => {
-        const fetchData = async () => {
-          const result = await getItems();
-          setChain(result.chain);
-        }
-        fetchData()
+      const fetchData = async () => {
+        const result = await getItems();
+        console.log(result.Blocks);
+        setChain(result.Blocks);
+      }
+      fetchData()
     }, [])
 
     const getItems = async () => {
-        var data
-        // try {
-        //   const { data } = await axios.get('/get_pending_blocks')
-        //   return data
-        // } catch (error) {
-        //   console.log(error)
-        // }
-        fetch('/get_pending_blocks', {
-          method: 'POST',
-          body: JSON.stringify({
-              'validator_key': JSON.parse(localStorage.getItem('MyUser'))._id, 
-          }),
-          headers: { 'Content-Type': 'Application/json' }
-      })
-      .then(resp => {
-        resp = resp.json()
-        data = resp.blocks
-      })
+      try {
+        const { data } = await axios.post('/get_pending_blocks', {
+          'validator_key': JSON.parse(localStorage.getItem('MyUser')).public_key
+        })
+        return data
+      } catch (error) {
+        console.log(error)
+      }
     }
 
     const validateTransactions = () => {
