@@ -30,7 +30,7 @@ const Login = ({ updateUser }) => {
                 if (resp.success)
                     updateUser(resp.wallets)
                 else
-                    alert(resp.message)
+                    alert(resp.Message)
             })
         
         localStorage.setItem("UserName", user.email)

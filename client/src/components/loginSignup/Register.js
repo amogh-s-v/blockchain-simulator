@@ -23,11 +23,13 @@ const Register = () => {
         const { email, password, reEnterPassword } = user
         if (email && password && (password === reEnterPassword)) {
             console.log("b4:", user)
+            console.log(JSON.stringify({ 'email': user.email, 'password': user.password }))
             fetch('/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 'email': user.email, 'password': user.password })
-            }).then(resp => resp.json()).then(resp => console.log(resp))
+                
+            }).then(resp => resp.json()).then(resp => alert(resp.message))
 
         } else {
             alert("invalid input")

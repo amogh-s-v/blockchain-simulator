@@ -7,6 +7,7 @@ import MineBlock from './components/MineTransaction'
 import CreateTransaction from '../src/components/CreateTransaction';
 import Details from '../src/components/Details';
 import Transac_history from '../src/components/Transaction_history';
+import ValidateTransaction from '../src/components/ValidateTransaction'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Header from './components/Header'
 
@@ -41,6 +42,7 @@ function App() {
                     {/* <Route path = '/pending' exact component={PendingTransactions}/> */}
                     <Route path = '/mineblock' exact component={MineBlock}/>
                     <Route path = '/history' exact component={Transac_history}/>
+                    <Route path = '/validate' exact component={ValidateTransaction}/>
                     <Route path='/new/transaction' exact component={CreateTransaction}/>
                     <Route path='/signup' exact component={Register} />
                     <Route path='/details'  component={Details}/>

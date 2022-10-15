@@ -40,11 +40,11 @@ const SidebarData = () => {
 
   const getDetails = () => {
     var transactions = [];
-    console.log(JSON.parse(localStorage.getItem("MyUser"))[0].uid)
+    console.log(JSON.parse(localStorage.getItem("MyUser")).uid)
     fetch('/get_details', {
       method: 'POST',
       body: JSON.stringify({
-        uid: JSON.parse(localStorage.getItem("MyUser"))[0].uid
+        uid: JSON.parse(localStorage.getItem("MyUser")).uid
       }),
       headers: { 'Content-Type': 'application/json' }
     })
@@ -54,13 +54,15 @@ const SidebarData = () => {
         setWallets({
           wallets: transactions
         })
-        localStorage.setItem("MyUser", JSON.stringify(resp.wallets))
+        // localStorage.setItem("MyUser", JSON.stringify(resp.wallets))
       });
     //window.location.href = '/details';
   }
   function MouseOver(event) {
     getDetails();
+    window.location.href = '/details/'
   }
+
   return (
     <div>
       <br></br>
@@ -97,14 +99,21 @@ const SidebarData = () => {
       <button
         type="button"
         className="btn btn-outline-light"
+        onClick={MouseOver} >
+        Wallets 
+      </button>
+
+      <br /><br />
+      <button
+        type="button"
+        className="btn btn-outline-light"
         onClick={(e) => {
           e.preventDefault();
           window.location.href = "/mineblock"
         }}>
         Mine Block
       </button>
-      <br /><br />
-      <div className="dropdown">
+      {/* <div className="dropdown">
         <button className='btn btn-outline-light' onMouseOver={MouseOver} >Wallets</button>
         <div className="dropdown-content">
           {wallets.wallets.map((element, index) => (
@@ -130,6 +139,19 @@ const SidebarData = () => {
           </button>
         </div>
       }
+       */}
+      <br></br>
+      <br></br>
+      <button
+        type="button"
+        className='btn btn-outline-light'
+        onClick={(e) => {
+          e.preventDefault();
+          window.location.href = "/validate"
+          
+        }}>
+        Validate Transactions
+      </button>
       <br></br>
       <br></br>
       <button

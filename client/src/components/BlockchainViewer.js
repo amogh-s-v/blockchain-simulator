@@ -23,7 +23,7 @@ const BlockchainViewer = () => {
   //     setChain(resp.chain)
   //   })
 
-  useEffect(() => {
+    useEffect(() => {
       const fetchData = async () => {
         const result = await getItems();
         setChain(result.chain);

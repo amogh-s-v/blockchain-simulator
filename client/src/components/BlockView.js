@@ -40,7 +40,7 @@ export default function BlockView(props) {
                     <span className="">Hash of previous block</span>
                     <br></br>
                     <div className="text-truncate">
-                        <small>{ block.previous_hash.substring(0, 20) }...</small>
+                        <small>{ block.prev_hash.substring(0, 20) }...</small>
                     </div>
                 </li>
                 <li className="list-group-item">

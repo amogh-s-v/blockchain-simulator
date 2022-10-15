@@ -13,25 +13,44 @@ const PendingTransactions = () => {
         wallets: []
     })
 
-    const [state, setWallet] = useState({
-        walletno: 0,
-        walletname: undefined//JSON.parse(localStorage.getItem('MyUser'))[0]._id
-    })
+    const [signature, setSignature] = useState("")
+
+    // const [state, setWallet] = useState({
+    //     walletno: 0,
+    //     walletname: undefined//JSON.parse(localStorage.getItem('MyUser'))[0]._id
+    // })
+
+    const walletname = JSON.parse(localStorage.getItem('MyUser'))._id
 
     const [privilege, setPrivilige] = useState({
         status: 1
     })
 
+    const userDetails = JSON.parse(localStorage.getItem('MyUser'));
+
     var transactions = [];
-    fetch('/pending_trans')
+
+    // .filter(x => !sTransaction.includes(x));
+    useEffect(()=>{
+        fetch('/getTrans',{
+            method: 'POST',
+            body: JSON.stringify({
+                'key': "ignore"
+            }),
+            headers: { 'Content-Type': 'Application/json' }
+        })
         .then(resp => resp.json())
         .then(resp => {
-            transactions = resp.pool.filter(x => !sTransaction.includes(x));
+            transactions = resp.transactions;
             setUser({
                 transactions_: transactions
                 // transactions_: transactions.filter(x => !sTransaction.includes(x))
             })
         });
+    }, [])
+
+    console.log(user.transactions_)
+     
 
     // fetch('/privilige_status')
     //     .then(resp => resp.json())
@@ -42,45 +61,45 @@ const PendingTransactions = () => {
     //         })
     //     });
 
-    const handleChangeWallet = e => {
-        //const { name, value } = e.target
-        setWallet({
-            walletno: Number(e.target.name),
-            walletname: JSON.parse(localStorage.getItem('MyUser'))[Number(e.target.name)]._id
-        })
-    }
+    // const handleChangeWallet = e => {
+    //     //const { name, value } = e.target
+    //     setWallet({
+    //         walletno: Number(e.target.name),
+    //         walletname: JSON.parse(localStorage.getItem('MyUser'))[Number(e.target.name)]._id
+    //     })
+    // }
 
-    const getDetails = () => {
-        var transactions = [];
-        console.log(JSON.parse(localStorage.getItem("MyUser"))[0].uid)
-        fetch('/get_details', {
-            method: 'POST',
-            body: JSON.stringify({
-                uid: JSON.parse(localStorage.getItem("MyUser"))[0].uid
-            }),
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(resp => resp.json())
-            .then(resp => {
-                transactions = resp.wallets;
-                setWallets({
-                    wallets: transactions
-                })
-                localStorage.setItem("MyUser", JSON.stringify(resp.wallets))
-            });
-        //window.location.href = '/details';
-    }
+    // const getDetails = () => {
+    //     var transactions = [];
+    //     console.log(JSON.parse(localStorage.getItem("MyUser"))[0].uid)
+    //     fetch('/get_details', {
+    //         method: 'POST',
+    //         body: JSON.stringify({
+    //             uid: JSON.parse(localStorage.getItem("MyUser"))[0].uid
+    //         }),
+    //         headers: { 'Content-Type': 'application/json' }
+    //     })
+    //         .then(resp => resp.json())
+    //         .then(resp => {
+    //             transactions = resp.wallets;
+    //             setWallets({
+    //                 wallets: transactions
+    //             })
+    //             localStorage.setItem("MyUser", JSON.stringify(resp.wallets))
+    //         });
+    //     //window.location.href = '/details';
+    // }
 
-    const minePendingTransactions = () => {
-        if (state.walletname) {
+    const validateTrans = () => {
+        if (walletname) {
             var fetch = require('cross-fetch')
-            fetch('/mine_block_auto', {
+            fetch('/validateTrans_forger', {
                 method: 'POST',
                 body: JSON.stringify({
-                    add: state.walletname
+                    'tList': transactions
                 }),
                 headers: { 'Content-Type': 'Application/json' }
-            }).then(resp => resp.json()).then(resp => alert(resp.message))
+            }).then(resp => resp.json()).then(resp => resp.valid_or_not)
         }
         else
             alert('Please choose a wallet first...')
@@ -92,15 +111,31 @@ const PendingTransactions = () => {
         )
     }
 
+    const signBlock = () => {
+        fetch('/get_signature', {
+            method: 'POST',
+            body: JSON.stringify({
+                publicKey: userDetails.publicKey,
+                selectedTrans : sTransaction,
+            }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(resp => resp.json())
+            .then(resp => {
+                alert(resp.message)
+            });
+    }
+
     return (
         <div>
             <div className="container">
                 <h1>Mine Transactions</h1>
                 <p>These transactions are waiting to be included in the next block. Next block is created when you start the mining process.</p>
             </div>
+            
 
             <h3> Pending Transactions</h3>
-            <button className="btn btn-primary" onClick={minePendingTransactions} >
+            <button className="btn btn-primary" onClick={validateTrans} >
                 Validate All The Pending Transactions
             </button>
             <table className="table table-hover table-striped">
@@ -113,7 +148,7 @@ const PendingTransactions = () => {
                         <th>Fee</th>
                         <th>Accept/Reject</th>
                     </tr>
-                    {user.transactions_.map((element, index) => (
+                    {user.transactions_.filter(x => !sTransaction.includes(x)).map((element, index) => (
                         <tr>
                             <td>
                                 {index + 1}
@@ -197,32 +232,32 @@ const PendingTransactions = () => {
             {
             privilege.status==1 ? 
             <>
-            <div className="dropdown">
-                <p>Wallet Chosen: 
-                    {
-                    state.walletname ? <p>{state.walletname}</p>: <p>None</p>}
-                </p>
-                <button className="btn btn-primary" onClick={getDetails}>Choose Wallet</button>
-                <div className="dropdown-content">
-                    {wallets.wallets.map((element, index) => (
-                        <a onClick={handleChangeWallet} name={index}>{element.id}</a>
-                    ))}
-                </div>
-            </div>
+            
             &nbsp;&nbsp;
-            <button className="btn btn-primary" onClick={minePendingTransactions} >
+            {/* <button className="btn btn-primary" onClick={minePendingTransactions} >
                 Add Block
-            </button>
+            </button> */}
             </>
             :
             privilege.status==2 ?
-            <button className="btn btn-primary" onClick={minePendingTransactions} >
+            <button className="btn btn-primary" >
                 Validate Block
             </button>
             :
             <p> <h4>You're Not A Validator! </h4> </p>
             }
+
+            <h1>&nbsp;&nbsp;Miner's Details</h1>
+            <div style={{ 'margin': '24px', 'border': '2px solid black'}}>
+                <p><span style = {{fontWeight: 'bold'}}>&nbsp;Block Index Name: </span></p>
+                <p><span style = {{fontWeight: 'bold'}}>&nbsp;Public Key: </span>{userDetails.publicKey}</p>
+                <p><span style = {{fontWeight: 'bold'}}>&nbsp;Signature: </span><button type="button" class="btn btn-success" onClick={signBlock}>Sign and Create Block</button></p>
+            </div>
+
+
         </div>
+
+        
     )
 }
 

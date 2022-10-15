@@ -6,12 +6,14 @@ import Header from './Header'
 
 const CreateTransaction = () => {
 
-    const [wallets, setWallets] = useState([])
+    // const [wallets, setWallets] = useState([])
 
-    const [state, setWallet] = useState({
-        walletno:0,
-        walletname:JSON.parse(localStorage.getItem('MyUser'))[0]._id
-    })
+    // const [state, setWallet] = useState({
+    //     walletno:0,
+    //     walletname:JSON.parse(localStorage.getItem('MyUser'))._id
+    // })
+
+    const  walletname = JSON.parse(localStorage.getItem('MyUser')).public_key
 
     const [user, setUser] = useState({
         toUser: "",
@@ -22,7 +24,6 @@ const CreateTransaction = () => {
 
     const index = 0
     const string = JSON.parse(localStorage.getItem('MyUser'))
-    console.log('wallet',state.walletno)
     // const walletname = string[state.walletno]._id
 
     const handleChange = e => {
@@ -33,30 +34,30 @@ const CreateTransaction = () => {
         })
     }
 
-    const handleChangeWallet = e => {
-        //const { name, value } = e.target
-        setWallet({
-            walletno:Number(e.target.name),
-            walletname:JSON.parse(localStorage.getItem('MyUser'))[Number(e.target.name)]._id
-        })
-    }
+    // const handleChangeWallet = e => {
+    //     //const { name, value } = e.target
+    //     setWallet({
+    //         walletno:Number(e.target.name),
+    //         walletname:JSON.parse(localStorage.getItem('MyUser'))._id
+    //     })
+    // }
 
-    useEffect(() => {
-        const fetchData = async () => {
-          var transactions = [];
-          const resp = await getDetails();
-          console.log(resp);
-          transactions = resp.wallets;
-          setWallets(transactions);
-          localStorage.setItem("MyUser",JSON.stringify(resp.wallets))
-        }
-        fetchData()
-      }, [])
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //       var transactions = [];
+    //       const resp = await getDetails();
+    //       console.log(resp);
+    //       transactions = resp.wallets;
+    //       setWallets(transactions);
+    //       localStorage.setItem("MyUser",JSON.stringify(resp.wallets))
+    //     }
+    //     fetchData()
+    //   }, [])
     
       const getDetails = async () => {
         try {
-          console.log(JSON.parse(localStorage.getItem("MyUser"))[0].uid)
-          const { data } = await axios.post('/get_details', {uid: JSON.parse(localStorage.getItem("MyUser"))[0].uid})
+          console.log(JSON.parse(localStorage.getItem("MyUser")).private_key)
+          const { data } = await axios.post('/get_details', {uid: JSON.parse(localStorage.getItem("MyUser")).private_key})
           console.log(data)
           return data
         } catch (error) {
@@ -72,7 +73,7 @@ const CreateTransaction = () => {
                 }),
             headers: { 'Content-Type': 'Application/json' }
         }).then(resp => resp.json()).then(resp => { setUser({
-            toAddress: resp.wallet_id
+            toAddress: resp.public_key
         })})
     }
     const createTransaction = () => {
@@ -80,15 +81,14 @@ const CreateTransaction = () => {
         fetch('/create_transaction', {
             method: 'POST',
             body: JSON.stringify({
-                transactions: [{
-                    'from': JSON.parse(localStorage.getItem('MyUser'))[state.walletno]._id,
-                    'to': user.toAddress,
-                    'amount': user.amount,
-                    'fee': user.fee
-                }]
+                'key': JSON.parse(localStorage.getItem('MyUser')).private_key,
+                'from': JSON.parse(localStorage.getItem('MyUser')).public_key,
+                'to': user.toAddress,
+                'amount': user.amount,
+                'fee': user.fee
             }),
             headers: { 'Content-Type': 'Application/json' }
-        }).then(resp => resp.json()).then(resp => { alert(resp.message) })
+        }).then(resp => resp.json()).then(resp => { alert(resp.Message) })
     }
 
 
@@ -99,17 +99,17 @@ const CreateTransaction = () => {
                 <p>Transfer some money to someone!</p>
                 <br />
                 <div className="form-group">
-                    <div className="dropdown">
+                    {/* <div className="dropdown">
                         <button className="dropbtn" onClick={getDetails}>Choose Wallet</button>
                         <div className="dropdown-content">
                             {wallets.map((element, index) => (
                                 <a onClick={handleChangeWallet} name={index}>{element.id}</a>
                             ))}
                         </div>
-                    </div>
+                    </div> */}
                     <br/><br/><br/>
                     <p>From address</p>
-                    <input type="text" className="form-control" id="fromAddress" aria-describedby="fromAddressHelp" disabled value={state.walletname} />
+                    <input type="text" className="form-control" id="fromAddress" aria-describedby="fromAddressHelp" disabled value={walletname} />
                     <small id="fromAddressHelp" className="form-text text-muted">
                         This is your wallet address. You cannot change it because you can only spend your own coins.
                     </small>
