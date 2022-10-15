@@ -55,6 +55,11 @@ class pool{
     get_next_transaction = ()=>{
         return this.pool.pop()
     }
+    verify = (publicKey, signature, id)=>{
+        var public_ = ec.keyFromPublic(publicKey,'hex')
+        return public_.verify(id, signature)
+    }
+
 }
 
 class block{
@@ -172,11 +177,11 @@ class blockchain
     validate = (transactions)=>{
         var result_array = new Array()
         transactions.forEach((tx)=>{
-            if(transaction.verify(tx.from,tx.signature))
+            if(Mempool.verify(tx.from,tx.signature, tx.id))
             {
-                if(this.nodes[tx.from].balance - tx.amount - tx.fee)
-                {
-                    if(this.nodes.has(tx.to))
+                if(( this.nodes[tx.from].balance - Number(tx.amount) - Number(tx.fee) ) > 0)
+                {   
+                    if(tx.to in this.nodes)
                         result_array.push(1)
                     else 
                         result_array.push(0)
@@ -358,6 +363,11 @@ app.post('/getTrans', (req,res)=>{
     res.send({'transactions':Blockchain.create_block()})
 })
 
+app.post('/get_pool',(req,res)=>{
+    res.send({'Pool':Mempool.pool})
+})
+
+
 app.post('/get_more',(req,res)=>{
     console.log()
     var reward = Math.random()*10
@@ -374,7 +384,7 @@ app.post('/get_more',(req,res)=>{
 })
 
 app.post('/validateTrans', (req, res) => {
-    res.send({"valid_or_not" : Blockchain.validate(JSON.parse(res.body.tList))})
+    res.send({"valid_or_not" : Blockchain.validate(req.body.tList)})
 })
 
 app.post('/get_signature', (req, res) => { 

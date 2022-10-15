@@ -15,6 +15,7 @@ const PendingTransactions = () => {
 
     const [signature, setSignature] = useState("")
 
+    const [valid, setValid] = useState([])
     // const [state, setWallet] = useState({
     //     walletno: 0,
     //     walletname: undefined//JSON.parse(localStorage.getItem('MyUser'))[0]._id
@@ -32,7 +33,7 @@ const PendingTransactions = () => {
 
     // .filter(x => !sTransaction.includes(x));
     useEffect(()=>{
-        fetch('/getTrans',{
+        fetch('/get_pool',{
             method: 'POST',
             body: JSON.stringify({
                 'key': "ignore"
@@ -41,7 +42,7 @@ const PendingTransactions = () => {
         })
         .then(resp => resp.json())
         .then(resp => {
-            transactions = resp.transactions;
+            transactions = resp.Pool;
             setUser({
                 transactions_: transactions
                 // transactions_: transactions.filter(x => !sTransaction.includes(x))
@@ -91,18 +92,17 @@ const PendingTransactions = () => {
     // }
 
     const validateTrans = () => {
-        if (walletname) {
+        
+            var arr
             var fetch = require('cross-fetch')
-            fetch('/validateTrans_forger', {
+            fetch('/validateTrans', {
                 method: 'POST',
                 body: JSON.stringify({
-                    'tList': transactions
+                    'tList': user.transactions_
                 }),
                 headers: { 'Content-Type': 'Application/json' }
-            }).then(resp => resp.json()).then(resp => resp.valid_or_not)
-        }
-        else
-            alert('Please choose a wallet first...')
+            }).then(resp => resp.json()).then(resp => setValid(resp.valid_or_not))
+        
     }
 
     const selectTransaction = (element) => {
@@ -125,6 +125,12 @@ const PendingTransactions = () => {
                 alert(resp.message)
             });
     }
+
+    const getColor = (status) => {
+        if (status === 0) return '#FFCCCB'; //red
+        if (status === 1) return '#90EE90'; //blue
+        return '';
+      };
 
     return (
         <div>
@@ -149,15 +155,15 @@ const PendingTransactions = () => {
                         <th>Accept/Reject</th>
                     </tr>
                     {user.transactions_.filter(x => !sTransaction.includes(x)).map((element, index) => (
-                        <tr>
+                        <tr style={{ background: getColor(valid[index])}}>
                             <td>
                                 {index + 1}
                             </td>
                             <td>
-                                {element.from}
+                                {element.from.substring(0, 32)}...
                             </td>
                             <td>
-                                {element.to}
+                                {element.to.substring(0, 32)}...
                             </td>
                             <td>
                                 {element.amount}
@@ -195,10 +201,10 @@ const PendingTransactions = () => {
                                 {index + 1}
                             </td>
                             <td>
-                                {element.from}
+                                {element.from.substring(0, 32)}...
                             </td>
                             <td>
-                                {element.to}
+                                {element.to.substring(0, 32)}...
                             </td>
                             <td>
                                 {element.amount}

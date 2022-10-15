@@ -85,7 +85,6 @@ const CreateTransaction = () => {
                 'from': JSON.parse(localStorage.getItem('MyUser')).public_key,
                 'to': user.toAddress,
                 'amount': user.amount,
-                'fee': user.fee
             }),
             headers: { 'Content-Type': 'Application/json' }
         }).then(resp => resp.json()).then(resp => { alert(resp.Message) })
@@ -130,13 +129,7 @@ const CreateTransaction = () => {
                         You can transfer any amount.
                     </small>
                 </div><br/><br/>
-                <div className="form-group">
-                    <p>Fee</p>
-                    <input type="number" className="form-control" id="fee" onChange={handleChange} name='fee' value={user.fee} />
-                    <small className="form-text text-muted">
-                        This is the fee to be paid for mining
-                    </small>
-                </div><br/><br/>
+                
                 <button onClick={createTransaction} type="submit" className="btn btn-primary">Sign & create transaction</button>
                 {/* <label value = {sign_transaction()}/> */}
             </div>
