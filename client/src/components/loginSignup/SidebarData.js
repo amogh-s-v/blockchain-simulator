@@ -40,7 +40,7 @@ const SidebarData = () => {
 
   const getDetails = () => {
     var transactions = [];
-    console.log(JSON.parse(localStorage.getItem("MyUser")).uid)
+    console.log(JSON.parse(localStorage.getItem("MyUser")).public_key)
     fetch('/get_details', {
       method: 'POST',
       body: JSON.stringify({
@@ -107,10 +107,10 @@ const SidebarData = () => {
         type="button"
         className="btn btn-outline-light"
         onClick={(e) => {
-          e.preventDefault();
+          // e.preventDefault();
           fetch('/get_details', {
             method: 'POST',
-            body: JSON.stringify({ public_key: localStorage.getItem("MyUser").public_key }),
+            body: JSON.stringify({ public_key: JSON.parse(localStorage.getItem("MyUser")).public_key }),
             headers: { 'Content-Type': 'Application/json' }
         })
         .then(resp => resp.json())

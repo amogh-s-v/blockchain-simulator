@@ -31,6 +31,7 @@ const Login = ({ updateUser }) => {
                 {
                     delete resp.wallets.password;
                     updateUser(resp.wallets)
+                    alert(resp.Message)
                 }
                 else
                     alert(resp.Message)

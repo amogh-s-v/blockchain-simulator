@@ -52,6 +52,11 @@ const PendingTransactions = () => {
         });
     }, [])
 
+    const [attr, setAttr] = useState({
+        signature: "", 
+        timestamp: ""
+    })
+
      
 
     // fetch('/privilige_status')
@@ -97,6 +102,7 @@ const PendingTransactions = () => {
             var arr
             var fetch = require('cross-fetch')
             console.log(sTransaction)
+
             fetch('/validateTrans', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -124,15 +130,41 @@ const PendingTransactions = () => {
         fetch('/get_signature', {
             method: 'POST',
             body: JSON.stringify({
-                privateKey: userDetails.private_key,
-                publicKey: userDetails.public_key,
-                selectedTrans : aTransaction
+                private_key: userDetails.private_key,
+                public_key: userDetails.public_key,
+                // selectedTrans : aTransaction
             }),
             headers: { 'Content-Type': 'application/json' }
         })
             .then(resp => resp.json())
             .then(resp => {
-                alert(resp.Message)
+                setAttr({
+                    signature: resp.signature, 
+                    timestamp: resp.timestamp
+                })
+            });
+    }
+
+    const createBlock = () => {
+        fetch('/add_block', {
+            method: 'POST',
+            body: JSON.stringify({
+                private_key: userDetails.private_key,
+                public_key: userDetails.public_key,
+                selectedTrans : aTransaction,
+                signature: attr.signature, 
+                timestamp: attr.timestamp,
+
+
+            }),
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(resp => resp.json())
+            .then(resp => {
+                setAttr({
+                    signature: resp.signature, 
+                    timestamp: resp.timestamp
+                })
             });
     }
 
@@ -310,10 +342,11 @@ const PendingTransactions = () => {
 
             <h1>&nbsp;&nbsp;Miner's Details</h1>
             <div style={{ 'margin': '24px', 'border': '2px solid black'}}>
-                <p><span style = {{fontWeight: 'bold'}}>&nbsp;Block Index Name: </span></p>
-                <p><span style = {{fontWeight: 'bold'}}>&nbsp;Public Key: </span>{userDetails.publicKey}</p>
-                <p><span style = {{fontWeight: 'bold'}}>&nbsp;Signature: </span><button type="button" class="btn btn-success" onClick={signBlock}>Sign and Create Block</button></p>
+                <p><span style = {{fontWeight: 'bold'}}>&nbsp;Public Key: </span>{userDetails.public_key}</p>
+                <p><span style = {{fontWeight: 'bold'}}>&nbsp;Signature: </span><button type="button" class="btn btn-success" onClick={signBlock}>Sign</button>&nbsp;&nbsp;{attr.signature}</p>
             </div>
+
+            <button type="button" class="btn btn-danger" onClick = {createBlock}>Create Block</button>
 
 
         </div>

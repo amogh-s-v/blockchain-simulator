@@ -14,6 +14,7 @@ const CreateTransaction = () => {
     // })
 
     const  walletname = JSON.parse(localStorage.getItem('MyUser')).public_key
+    
 
     const [user, setUser] = useState({
         signature: "",
@@ -35,6 +36,7 @@ const CreateTransaction = () => {
             [name]:value
         })
     }
+    console.log(user)
 
     // const handleChangeWallet = e => {
     //     //const { name, value } = e.target
@@ -74,27 +76,52 @@ const CreateTransaction = () => {
                 id: user.toUser
                 }),
             headers: { 'Content-Type': 'Application/json' }
-        }).then(resp => resp.json()).then(resp => { setUser({
-            toAddress: resp.public_key
-        })})
+        })
+        .then(resp => resp.json())
+        .then(resp => 
+            {
+                setUser({
+                    signature: user.signature,
+                    toUser: user.toUser,
+                    toAddress:user.toAddress,
+                    amount: user.amount,
+                    fee: user.fee, 
+                    timestamp: user.timestamp,
+                    toAddress: resp.public_key, 
+                })
+                if(resp.Message !== "") {alert(resp.Message)}
+            })
     }
 
     const getSignature = () => {
-        fetch('/get_signature', {
+        console.log("Beofre fetch", user)
+        fetch('/get_signature_transaction', {
             method: 'POST', 
             body: JSON.stringify({
-                'private_key': myUser.privateKey,
-                'public_key': myUser.public_key
-            }), 
+                'private_key': myUser.private_key,
+                'public_key': myUser.public_key,
+                'to': user.toAddress,
+                'amount': user.amount,
+            }),
             headers:{ 'Content-Type': 'Application/json' }
         })
         .then (resp => resp.json())
         .then (resp =>{
-            setUser({signature: resp.signature, timestamp: resp.timestamp});
+            console.log("before", user)
+            setUser({
+                signature: resp.signature,
+                toUser: user.toUser,
+                toAddress:user.toAddress,
+                amount: user.amount,
+                fee: user.fee, 
+                timestamp: resp.timestamp,
+            })
+            console.log("after", user)
             alert(resp.Message);
-            var x = localStorage.getItem("MyUser");
-            x.signature= resp.signature;
-            localStorage.setItem(x);
+            // var x = localStorage.getItem("MyUser");
+            // x.signature = resp.signature;
+            // x.timestamp = resp.timestamp;
+            // localStorage.setItem(x);
         })
     }
 
@@ -107,7 +134,8 @@ const CreateTransaction = () => {
                 'from': myUser.public_key,
                 'to': user.toAddress,
                 'amount': user.amount,
-                'signature': user.signature
+                'signature': user.signature, 
+                'timestamp': user.timestamp
             }),
             headers: { 'Content-Type': 'Application/json' }
         }).then(resp => resp.json()).then(resp => { alert(resp.Message) })
@@ -147,7 +175,7 @@ const CreateTransaction = () => {
 
                 <div className="form-group">
                     <p>Signature</p>
-                    <button onClick={getSignature} type="button" class="btn btn-danger">Sign</button>
+                    <button onClick={getSignature} type="submit" class="btn btn-danger">Sign</button>
                     <input type="text" className="form-control" id="signature" aria-describedby="signature" onChange={handleChange} name='signature' value={user.signature} />
                 </div>
                 <button onClick={createTransaction} type="submit" class="btn btn-success">Initiate Transaction</button>

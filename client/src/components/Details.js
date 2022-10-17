@@ -65,7 +65,7 @@ const Details = () => {
         }).then(resp => resp.json())
             .then(resp => {
                 console.log(resp)
-                alert(resp.message);
+                alert(resp.Message);
                 var storage = JSON.parse(localStorage.getItem("MyUser"))
                 storage.balance = resp.balance
                 localStorage.setItem("MyUser",JSON.stringify(storage))
