@@ -16,14 +16,16 @@ const CreateTransaction = () => {
     const  walletname = JSON.parse(localStorage.getItem('MyUser')).public_key
 
     const [user, setUser] = useState({
+        signature: "",
         toUser: "",
         toAddress:"",
         amount: "",
-        fee: ""
+        fee: "", 
+        timestamp: "", 
     })
 
     const index = 0
-    const string = JSON.parse(localStorage.getItem('MyUser'))
+    const myUser = JSON.parse(localStorage.getItem('MyUser'))
     // const walletname = string[state.walletno]._id
 
     const handleChange = e => {
@@ -76,15 +78,36 @@ const CreateTransaction = () => {
             toAddress: resp.public_key
         })})
     }
+
+    const getSignature = () => {
+        fetch('/get_signature', {
+            method: 'POST', 
+            body: JSON.stringify({
+                'private_key': myUser.privateKey,
+                'public_key': myUser.public_key
+            }), 
+            headers:{ 'Content-Type': 'Application/json' }
+        })
+        .then (resp => resp.json())
+        .then (resp =>{
+            setUser({signature: resp.signature, timestamp: resp.timestamp});
+            alert(resp.Message);
+            var x = localStorage.getItem("MyUser");
+            x.signature= resp.signature;
+            localStorage.setItem(x);
+        })
+    }
+
     const createTransaction = () => {
         var fetch = require('cross-fetch')
         fetch('/create_transaction', {
             method: 'POST',
             body: JSON.stringify({
-                'key': JSON.parse(localStorage.getItem('MyUser')).private_key,
-                'from': JSON.parse(localStorage.getItem('MyUser')).public_key,
+                'key': myUser.private_key,
+                'from': myUser.public_key,
                 'to': user.toAddress,
                 'amount': user.amount,
+                'signature': user.signature
             }),
             headers: { 'Content-Type': 'Application/json' }
         }).then(resp => resp.json()).then(resp => { alert(resp.Message) })
@@ -98,21 +121,13 @@ const CreateTransaction = () => {
                 <p>Transfer some money to someone!</p>
                 <br />
                 <div className="form-group">
-                    {/* <div className="dropdown">
-                        <button className="dropbtn" onClick={getDetails}>Choose Wallet</button>
-                        <div className="dropdown-content">
-                            {wallets.map((element, index) => (
-                                <a onClick={handleChangeWallet} name={index}>{element.id}</a>
-                            ))}
-                        </div>
-                    </div> */}
-                    <br/><br/><br/>
                     <p>From address</p>
                     <input type="text" className="form-control" id="fromAddress" aria-describedby="fromAddressHelp" disabled value={walletname} />
                     <small id="fromAddressHelp" className="form-text text-muted">
                         This is your wallet address. You cannot change it because you can only spend your own coins.
                     </small>
-                </div><br/><br/>
+                </div>
+                <br/><br/>
                 <div className="form-group">
                     <p>To address</p>
                     <input type="text" className="form-control" id="toUser" aria-describedby="toAddressHelp" onChange={handleChange} name='toUser' value={user.toUser} />
@@ -129,8 +144,16 @@ const CreateTransaction = () => {
                         You can transfer any amount.
                     </small>
                 </div><br/><br/>
-                
-                <button onClick={createTransaction} type="submit" className="btn btn-primary">Sign & create transaction</button>
+
+                <div className="form-group">
+                    <p>Signature</p>
+                    <button onClick={getSignature} type="button" class="btn btn-danger">Sign</button>
+                    <input type="text" className="form-control" id="signature" aria-describedby="signature" onChange={handleChange} name='signature' value={user.signature} />
+                </div>
+                <button onClick={createTransaction} type="submit" class="btn btn-success">Initiate Transaction</button>
+                <br></br>
+                <br></br>
+                <br></br>
                 {/* <label value = {sign_transaction()}/> */}
             </div>
         </div>

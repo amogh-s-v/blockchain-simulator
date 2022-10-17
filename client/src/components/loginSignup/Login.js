@@ -28,7 +28,10 @@ const Login = ({ updateUser }) => {
             .then(resp => {
                 console.log(resp)
                 if (resp.success)
+                {
+                    delete resp.wallets.password;
                     updateUser(resp.wallets)
+                }
                 else
                     alert(resp.Message)
             })
