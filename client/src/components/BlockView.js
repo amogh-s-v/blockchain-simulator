@@ -12,16 +12,22 @@ export default function BlockView(props) {
         fetch('/get_block_details', {
             method: 'POST',
             body: JSON.stringify({
-                index: block.index
+                id: block._id
                 }),
             
             headers: { 'Content-Type': 'Application/json' }
-        }).then(resp => resp.json()).then(resp => { setClick({
+        }).then(resp => resp.json()).then(resp => { 
+            if(!resp.transactions) resp.transactions = []
+            setClick({
             click_:1,
             hash:block.hash,
             index: block.index,
-            transactions: resp.transactions
-        })})
+            transactions: resp.transactions,
+            blockid: block._id
+        })
+    console.log(resp.transactions)})
+
+        
     }
 
     return(

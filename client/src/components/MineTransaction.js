@@ -3,9 +3,12 @@ import Header from "./Header";
 
 const PendingTransactions = () => {
 
-    const [user, setUser] = useState({
-        transactions_: []
-    })
+    // const [user, setUser] = useState({
+    //     transactions_: []
+    // })
+
+    
+    const [transaction, setTransaction] = useState([])
 
     const [sTransaction, setsTransaction] = useState([])
 
@@ -35,6 +38,12 @@ const PendingTransactions = () => {
 
     // .filter(x => !sTransaction.includes(x));
     useEffect(()=>{
+        console.log(Number(JSON.parse(localStorage.getItem("MyUser")).type))
+        if(Number(JSON.parse(localStorage.getItem("MyUser")).type)!=3) 
+        {
+            alert("Not a miner")
+            window.location.href="/"
+        }
         fetch('/get_pool',{
             method: 'POST',
             body: JSON.stringify({
@@ -45,10 +54,11 @@ const PendingTransactions = () => {
         .then(resp => resp.json())
         .then(resp => {
             transactions = resp.Pool;
-            setUser({
-                transactions_: transactions
-                // transactions_: transactions.filter(x => !sTransaction.includes(x))
-            })
+            // setUser({
+            //     transactions_: transactions
+            //     // transactions_: transactions.filter(x => !sTransaction.includes(x))
+            // })
+            setTransaction(transactions)
         });
     }, [])
 
@@ -101,7 +111,6 @@ const PendingTransactions = () => {
         
             var arr
             var fetch = require('cross-fetch')
-            console.log(sTransaction)
 
             fetch('/validateTrans', {
                 method: 'POST',
@@ -109,7 +118,7 @@ const PendingTransactions = () => {
                     'tList': sTransaction
                 }),
                 headers: { 'Content-Type': 'Application/json' }
-            }).then(resp => resp.json()).then(resp => {setValid(resp.valid_or_not); console.log(resp.valid_or_not)})
+            }).then(resp => resp.json()).then(resp => {setValid(resp.valid_or_not); })
             
         
     }
@@ -165,7 +174,30 @@ const PendingTransactions = () => {
                     signature: resp.signature, 
                     timestamp: resp.timestamp
                 })
+                alert(resp.Message)
+                window.location.href = '/validate'
             });
+        
+    }
+
+
+    const removeTransaction = (element, remove) => {
+        if(remove === 0){
+            fetch('/invalidate_transaction', {
+                method: 'POST',
+                body: JSON.stringify({
+                    id: element._id
+                }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(resp => resp.json())
+                .then(resp => {alert(resp.Message)});
+        }
+        else{
+            var temp = sTransaction.splice(sTransaction.indexOf(element), 1)
+            setsTransaction(sTransaction.filter(x => !temp.includes(x)))
+        }
+        
     }
 
     const getColor = (status) => {
@@ -182,6 +214,7 @@ const PendingTransactions = () => {
             </div>
             
 
+
             <h3> Pending Transactions</h3>
             <table className="table table-hover table-striped">
                 <tbody>
@@ -193,7 +226,7 @@ const PendingTransactions = () => {
                         <th>Fee</th>
                         <th>Accept/Reject</th>
                     </tr>
-                    {user.transactions_.filter(x => !sTransaction.includes(x)).map((element, index) => (
+                    {transaction.filter(x => !sTransaction.includes(x)).map((element, index) => (
                         <tr >
                             <td>
                                 {index + 1}
@@ -212,6 +245,7 @@ const PendingTransactions = () => {
                             </td>
                             <td>
                                 {/* <button type="button" class="btn btn-outline-success me-3" onClick={selectTransaction(element)}>✓</button> */}
+                                {/* <button type="button" class="btn btn-outline-success me-3" onClick={() => selectTransaction(element)}>Select</button> */}
                                 <button type="button" class="btn btn-outline-success me-3" onClick={() => selectTransaction(element)}>Select</button>
                                 {/* <button type="button" class="btn btn-outline-danger">✗</button> */}
                             </td>
@@ -258,7 +292,7 @@ const PendingTransactions = () => {
                             <td>
                             <button type="button" class="btn btn-outline-success me-3" onClick={() => {acceptTransaction(element); var arr = valid; arr.splice(index, 1); setValid(arr)}}>✓</button>
                                 {/* <button type="button" class="btn btn-outline-success me-3" onClick={() => {acceptTransaction(element); setValid(valid.filter(x => !valid.splice(index, 1).includes(x)))}}>✓</button> */}
-                                <button type="button" class="btn btn-outline-danger">✗</button>
+                            <button type="button" class="btn btn-outline-danger" onClick={() => {removeTransaction(element, valid[index]); var arr = valid; arr.splice(index, 1); setValid(arr)}}>✗</button>
                             </td>
                         </tr>
                     )

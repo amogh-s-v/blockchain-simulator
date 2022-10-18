@@ -6,15 +6,24 @@ import './BlockView.css'
 import { Container } from "react-bootstrap";
 
 const ValidateTransaction = () => {
+
+    
+    const [valid, setValid] = useState([])
     const [chain, setChain] = useState([])
     const [click, setClick] = useState({
         click_: 0,
         hash: '',
         index: 0, 
-        transactions:[]
+        transactions:[], 
+        blockid: 0,
     })
 
     useEffect(() => {
+      if(Number(JSON.parse(localStorage.getItem("MyUser")).type)==1) 
+      {
+          alert("Not a miner/validator")
+          window.location.href="/"
+      }
       const fetchData = async () => {
         const result = await getItems();
         console.log(result.Blocks);
@@ -32,14 +41,52 @@ const ValidateTransaction = () => {
       } catch (error) {
         console.log(error)
       }
+
+      fetch('/get_details', {
+        method: 'POST',
+        body: JSON.stringify({
+          public_key: JSON.parse(localStorage.getItem("MyUser")).public_key
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+        .then(resp => resp.json())
+        .then(resp => {
+              var x = JSON.parse(localStorage.getItem("MyUser"))
+              x.balance = resp.balance
+              x.stake = resp.stake
+              x.type = resp.type
+              localStorage.setItem("MyUser",JSON.stringify(x))
+        });
     }
 
-    const validateTransactions = () => {
-
-    }
-
-    const vote = (staus) => {
+    const validateTrans = () => {
         
+      var arr
+      var fetch = require('cross-fetch')
+
+      fetch('/validateTrans', {
+          method: 'POST',
+          body: JSON.stringify({
+              'tList': click.transactions
+          }),
+          headers: { 'Content-Type': 'Application/json' }
+      }).then(resp => resp.json()).then(resp => {setValid(resp.valid_or_not); })
+      
+  
+}
+
+    const vote = (status) => {
+      fetch('/votes', {
+        method: 'POST',
+        body: JSON.stringify({
+            '_id': click.blockid, 
+            'public_key': JSON.parse(localStorage.getItem("MyUser")).public_key,
+            'vote': status
+        }),
+        headers: { 'Content-Type': 'Application/json' }
+    })
+    .then(resp => resp.json())
+    .then(resp => {setValid(resp.valid_or_not); alert(resp.Message) })
     }
 
     const getColor = (status) => {
@@ -85,7 +132,7 @@ const ValidateTransaction = () => {
                       <th>Fee</th>
                     </tr>
                     {click.transactions.map((element, index) => (
-                      <tr style={{ background: getColor(0), color: "white" }}>
+                      <tr style={{ background: getColor(valid[index]) }}>
                         <td>
                           {index + 1}
                         </td>
@@ -93,10 +140,10 @@ const ValidateTransaction = () => {
                           {element.blockno}
                         </td>
                         <td>
-                          {element.from}
+                        {element.from.substring(0, 32)}...
                         </td>
                         <td>
-                          {element.to}
+                          {element.to.substring(0, 32)}...
                         </td>
                         <td>
                           {element.amount}
@@ -113,11 +160,11 @@ const ValidateTransaction = () => {
 
                   </tbody>
                 </table>
-                <button type="button" class="btn btn-success " onClick={validateTransactions}>Validate Transactions</button>
+                <button type="button" class="btn btn-success " onClick={()=>{validateTrans()}}>Validate Transactions</button>
                 <br></br>
                 <br></br>
-                <button type="button" class="btn btn-success me-3" onClick={vote(1)}>Vote For Block {click.index} To Be Accepted </button>
-                <button type="button" class="btn btn-danger" onClick={vote(0)}>Vote For Block {click.index} To Be Rejected </button>
+                <button type="button" class="btn btn-success me-3" onClick={()=>{vote(1)}}>Vote For Block {click.index} To Be Accepted </button>
+                <button type="button" class="btn btn-danger" onClick={()=>{vote(0)}}>Vote For Block {click.index} To Be Rejected </button>
                 <br></br>
                 <br></br>
               </Container>
