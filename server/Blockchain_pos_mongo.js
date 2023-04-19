@@ -9,7 +9,6 @@ var app = express()
 var MongoClient = require('mongodb').MongoClient
 var cors = require('cors')
 var mongoose = require('mongoose')
-const { isNumberObject } = require('util/types')
 const { time } = require('console')
 const CONNECTION_URL = 'mongodb://127.0.0.1:27017/'
 const PORT = 5000

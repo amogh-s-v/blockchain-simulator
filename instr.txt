@@ -1,0 +1,23 @@
+Users and Balance ready
+Stakes
+a-12-miner
+b-20 
+c-18
+d-15
+
+d->c trans
+mine
+validate and vote for from 2 accounts
+
+51% attack
+make INVALID trans from c to a
+mine the invalid trans
+vote until acceptance
+
+make invalid trans from c to a
+vote against from all validators
+miner will get penalised
+
+valid trans from d to b
+everyone votes against
+block gets removed
